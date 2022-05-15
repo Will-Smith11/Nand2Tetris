@@ -1,4 +1,4 @@
-use std::{fs::{self, File}, collections::HashMap, fmt::Result, io::{BufRead, BufReader, self, Error}, path::Path, ptr::read, env, ops::Index};
+use std::{fs::{self, File}, collections::HashMap, io::{ BufRead, BufReader, self, Error}, path::Path, ptr::read, env, ops::Index};
 use phf::phf_map;
 
 static C_INST: phf::Map<&'static str, &str> = phf_map! {
@@ -51,10 +51,31 @@ static JUMP_SYMBOLS: phf::Map<&'static str, &str> = phf_map! {
     "JMP"=> "111",
 };
 
-fn read_file<P>(file_name: P) -> io::Result<io::Lines<io::BufReader<File>>> where P: AsRef<Path>, {
-    let file = File::open(file_name)?;
-    
-    Ok(io::BufReader::new(file).lines())
+fn build_symbol_dict(map: &mut Box<HashMap<&str, &u16>>)
+{
+    map.insert("SP", &0);
+    map.insert("LCL", &1);
+    map.insert("ARG", &2);
+    map.insert("THIS", &3);
+    map.insert("THAT", &4);
+    map.insert("R0", &0);
+    map.insert("R1", &1);
+    map.insert("R2", &2);
+    map.insert("R3", &3);
+    map.insert("R4", &4);
+    map.insert("R5", &5);
+    map.insert("R6", &6);
+    map.insert("R7", &7);
+    map.insert("R8", &8);
+    map.insert("R9", &9);
+    map.insert("R10", &10);
+    map.insert("R11", &11);
+    map.insert("R12", &12);
+    map.insert("R13", &13);
+    map.insert("R14", &14);
+    map.insert("R15", &15);
+    map.insert("SCREEN", &16384);
+    map.insert("KBD", &24576);
 }
 
 fn cleanup_line(line: &String) -> io::Result<String>
@@ -62,17 +83,42 @@ fn cleanup_line(line: &String) -> io::Result<String>
     Ok(line.replace(" ", ""))
 }
 
+fn remove_comments(line: &String) -> io::Result<String>
+{
+    Ok(String::from(*line.split("//").collect::<Vec<&str>>().index(0)))
+}
+
+fn read_and_clean_file(file_name: &String) -> io::Result<Vec<String>>
+{
+    let file = File::open(file_name)?;
+    let lines = io::BufReader::new(file)
+        .lines()
+        .filter_map(|line|
+        {
+            let cleaned  = cleanup_line(&line.unwrap()).unwrap();
+            if !cleaned.starts_with("//") && cleaned.len() != 0
+            {
+                Some(remove_comments(&cleaned).unwrap());
+            }
+
+            None
+        })
+        .collect();
+
+    Ok(lines)
+}
+
 fn main() {
+    // Startup
     let args: Vec<String> = env::args().collect();
     let mut symbol_dict: Box<HashMap<&str, &u16>> = Box::new(HashMap::new());
+    build_symbol_dict(&mut symbol_dict);
+    // Load File
     let file_name = args.index(1);
-    
-    if let Ok(lines) = read_file( &file_name) {
-        for line in lines {
-            if let Ok(mut data) = line {
-                let formatted: String = cleanup_line(&data).unwrap();
-                println!("{}",formatted);
-            }
-        }
+    let lines = read_and_clean_file(&file_name).unwrap();
+
+    for (i, line) in lines.iter().enumerate()
+    {
+        if 
     }
 }
