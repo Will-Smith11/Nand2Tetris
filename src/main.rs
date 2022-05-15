@@ -51,31 +51,31 @@ static JUMP_SYMBOLS: phf::Map<&'static str, &str> = phf_map! {
     "JMP"=> "111",
 };
 
-fn build_symbol_dict(map: &mut Box<HashMap<&str, &u16>>)
+fn build_symbol_dict(map: &mut Box<HashMap<&str, u16>>)
 {
-    map.insert("SP", &0);
-    map.insert("LCL", &1);
-    map.insert("ARG", &2);
-    map.insert("THIS", &3);
-    map.insert("THAT", &4);
-    map.insert("R0", &0);
-    map.insert("R1", &1);
-    map.insert("R2", &2);
-    map.insert("R3", &3);
-    map.insert("R4", &4);
-    map.insert("R5", &5);
-    map.insert("R6", &6);
-    map.insert("R7", &7);
-    map.insert("R8", &8);
-    map.insert("R9", &9);
-    map.insert("R10", &10);
-    map.insert("R11", &11);
-    map.insert("R12", &12);
-    map.insert("R13", &13);
-    map.insert("R14", &14);
-    map.insert("R15", &15);
-    map.insert("SCREEN", &16384);
-    map.insert("KBD", &24576);
+    map.insert("SP", 0);
+    map.insert("LCL", 1);
+    map.insert("ARG", 2);
+    map.insert("THIS", 3);
+    map.insert("THAT", 4);
+    map.insert("R0", 0);
+    map.insert("R1", 1);
+    map.insert("R2", 2);
+    map.insert("R3", 3);
+    map.insert("R4", 4);
+    map.insert("R5", 5);
+    map.insert("R6", 6);
+    map.insert("R7", 7);
+    map.insert("R8", 8);
+    map.insert("R9", 9);
+    map.insert("R10", 10);
+    map.insert("R11", 11);
+    map.insert("R12", 12);
+    map.insert("R13", 13);
+    map.insert("R14", 14);
+    map.insert("R15", 15);
+    map.insert("SCREEN", 16384);
+    map.insert("KBD", 24576);
 }
 
 fn cleanup_line(line: &String) -> io::Result<String>
@@ -111,14 +111,26 @@ fn read_and_clean_file(file_name: &String) -> io::Result<Vec<String>>
 fn main() {
     // Startup
     let args: Vec<String> = env::args().collect();
-    let mut symbol_dict: Box<HashMap<&str, &u16>> = Box::new(HashMap::new());
-    build_symbol_dict(&mut symbol_dict);
+    let mut symbol_dict: Box<HashMap<&str, u16>> = Box::new(HashMap::new());
+    build_symbol_dict( &mut symbol_dict);
     // Load File
     let file_name = args.index(1);
-    let lines = read_and_clean_file(&file_name).unwrap();
+
+    let lines: Vec<String> = read_and_clean_file(&file_name).unwrap();
+    let mut result: String = String::new();
 
     for (i, line) in lines.iter().enumerate()
     {
-        if 
+        if line.starts_with("(") && line.ends_with(")")
+        {
+            symbol_dict.insert(&line.as_str()[1..line.len()-1], i as u16);
+        }
     }
+    //remove lines
+    let ac_lines: Vec<&String> = lines
+                .iter()
+                .filter(|line| !(line.starts_with("(") && line.ends_with(")")))
+                .collect();
+    
+       
 }
