@@ -1,6 +1,5 @@
-use std::{fs::{File}, collections::HashMap, io::{ BufRead, self, Error, Write}, env, ops::Index };
+use std::{fs::{self, File}, collections::HashMap, io::{ BufRead, self, Error}, env, ops::Index };
 use phf::phf_map;
-use std::fs;
 
 static C_SYMBOLS: phf::Map<&'static str, &str> = phf_map! {
     "0" => "0101010",
@@ -166,7 +165,7 @@ fn c_inst(inst: &str) -> Result<String, Error>
     {
         2 => c_two_args(inst, split[0], split[1]),
         3 => c_three_args(&split),
-        __ => panic!("invalid line"),
+        _ => panic!("invalid line"),
     };
 
     Ok(res.unwrap())
