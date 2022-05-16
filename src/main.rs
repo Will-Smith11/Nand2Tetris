@@ -79,19 +79,19 @@ fn build_symbol_dict(map: &mut Box<HashMap<String, u16>>)
     map.insert("KBD".to_string(), 24576);
 }
 
-fn cleanup_line(line: &String) -> io::Result<String>
+fn cleanup_line(line: &String) -> String
 {
-    Ok(line.replace(" ", ""))
+    line.replace(" ", "")
 }
 
-fn remove_comments(line: &String) -> io::Result<String>
+fn remove_comments(line: &String) -> String
 {
-    Ok(String::from(*line.split("//").collect::<Vec<&str>>().index(0)))
+    String::from(*line.split("//").collect::<Vec<&str>>().index(0))
 }
 
-fn pad_binary(a_bin: &String) -> io::Result<String>
+fn pad_binary(a_bin: &String) -> String
 {
-    Ok("0".repeat(16-a_bin.len()) + a_bin)
+    "0".repeat(16-a_bin.len()) + a_bin
 }
 
 fn word_a_inst(inst: &String, symbol_map: &mut Box<HashMap<String, u16>>) -> io::Result<u16>
@@ -117,17 +117,16 @@ fn a_inst(inst: &String, symbol_map: &mut Box<HashMap<String, u16>>) -> io::Resu
     Ok(res)
 }
 
-fn read_and_clean_file(file_name: &String) -> io::Result<Vec<String>>
+fn read_and_clean_file(file_name: &String) -> Vec<String>
 {
-    let file = File::open(file_name)?;
-    let lines = io::BufReader::new(file)
-        .lines()
-        .map(|line | cleanup_line(&line.unwrap()).unwrap())
-        .filter(|line| !line.starts_with("//") && line.len() != 0)
-        .map(|line | remove_comments(&line).unwrap())
-        .collect();
+    let file = File::open(file_name).unwrap();
 
-    Ok(lines)
+    return io::BufReader::new(file)
+        .lines()
+        .map(|line | cleanup_line(&line.unwrap()))
+        .filter(|line| !line.starts_with("//") && line.len() != 0)
+        .map(|line | remove_comments(&line))
+        .collect();
 }
 
 fn c_two_args(inst: &str, arg1: &str, arg2: &str) -> io::Result<String>
@@ -183,7 +182,7 @@ fn main() {
     build_symbol_dict( &mut symbol_map);
     // Load File
     let file_name = args.index(1);
-    let lines: Vec<String> = read_and_clean_file(&file_name).unwrap();
+    let lines: Vec<String> = read_and_clean_file(&file_name);
     let mut result: String = String::new();
 
     // build symbol map
@@ -206,7 +205,7 @@ fn main() {
         if line.starts_with("@")
         {
             let no_symbol = String::from(&line[1..]);
-            let a_inst = pad_binary(&a_inst(&no_symbol.to_string(), &mut symbol_map).unwrap()).unwrap();
+            let a_inst = pad_binary(&a_inst(&no_symbol.to_string(), &mut symbol_map).unwrap());
             result.push_str(a_inst.as_str());
             result.push_str("\n");
         }
